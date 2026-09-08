@@ -6,6 +6,15 @@ Run `./scripts/preflight.ps1` on Windows. Install missing tools from the officia
 
 Use Node.js 24, Terraform 1.14.8 (the CI version), Helm 3.19.0 (scripts use Helm 3 flags), and kubectl 1.35.x. Terraform lock files are committed; update providers deliberately. The application has no npm installation step.
 
+After an intentional provider update, record checksums for both the Windows workstation and Linux CI before committing the lock files:
+
+```powershell
+terraform -chdir=infra/aws providers lock -platform=windows_amd64 -platform=linux_amd64
+terraform -chdir=infra/azure providers lock -platform=windows_amd64 -platform=linux_amd64
+```
+
+CI uses `-lockfile=readonly`, so it requires these platform checksums to be committed. See [Terraform provider locking across platforms](https://developer.hashicorp.com/terraform/cli/commands/providers/lock#specifying-target-platforms).
+
 Create a GitHub repository, add it as the origin, and push the reviewed files to a `main` branch. No remote repository or account is assumed. Require CI checks in branch protection, and restrict deployment environments to `main`.
 
 ## 2. Bootstrap state and identities
