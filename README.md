@@ -4,7 +4,7 @@ A Node.js API, Terraform infrastructure for Azure and AWS, Helm deployments, Git
 
 [![CI](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml/badge.svg)](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml)
 
-**Current status:** Local Docker deployment, application metrics, Grafana provisioning, and the application image security scan are verified. Cloud deployment is the next milestone.
+**Current status:** Local Docker deployment, application metrics, Grafana provisioning, and the application image security scan are verified. [GitHub-hosted CI passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34254299244), including tests, both Terraform roots, Checkov, Docker build, and Trivy. Cloud deployment is the next milestone.
 
 This is a learning and portfolio project with production-oriented controls. Cloud deployment requires account-specific bootstrap and validation. No cloud resources are created just by cloning this repository or running CI.
 

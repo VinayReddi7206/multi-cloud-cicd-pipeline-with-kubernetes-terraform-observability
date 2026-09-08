@@ -1,6 +1,6 @@
 # Validation record
 
-Validated locally on 2026-09-08. Cloud deployment has not been performed.
+Validated locally and in GitHub Actions on 2026-09-08. Cloud deployment has not been performed.
 
 | Check | Result |
 | --- | --- |
@@ -20,13 +20,17 @@ Validated locally on 2026-09-08. Cloud deployment has not been performed.
 | Docker image build and runtime | Passed; application runs as a non-root user with a read-only filesystem; all 4 API tests also passed inside the patched image on Node.js 24.20.0 |
 | Local monitoring | Application health/readiness passed; Prometheus target is up and request metrics were collected; Grafana 13.2.1 authenticated successfully, loaded all 6 dashboard panels, and connected to Prometheus |
 | Trivy application image scan | Trivy 0.73.0 reported 0 HIGH/CRITICAL findings after updating Alpine packages and removing unused npm/Yarn; the initial image had 6 HIGH findings |
-| GitHub publication | Prepared on main for the public portfolio repository; first hosted CI run pending |
+| GitHub publication | Published to the [public portfolio repository](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability) on main; local credentials and generated files excluded; Trivy source secret scan passed before publication |
+| GitHub-hosted CI | [Run 34254299244 passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34254299244) for commit `96ec975`: application and deployment-script tests, Helm checks, AWS/Azure Terraform validation, Checkov, Docker build, Trivy and tested-image artifact upload |
+| Terraform platform locking | HashiCorp-signed provider packages verified for Windows AMD64 and Linux AMD64; both platform hashes committed so Linux CI can initialize with a read-only lock file |
+
+The initial hosted run exposed missing Linux package hashes in lock files generated on Windows. Adding the publisher-verified platform hashes fixed validation without changing provider versions or disabling checksum verification.
 
 ## Not yet verified
 
 - Cloud account authentication, quotas, supported regional VM/Kubernetes configurations, identity bootstrap and Terraform state access.
 - Terraform plan/apply against actual accounts.
-- GitHub-hosted CI and private deployment runners.
+- Private deployment runners and GitHub OIDC authentication to the clouds.
 - Live AKS/EKS deployment, registry authentication and image pull, metrics scraping, PVC provisioning, live rollback, Azure Monitor ingestion and Slack alert delivery.
 
 Static configuration checks and mocked rollback tests do not establish that the cloud deployment works. Follow the setup guide, complete a Dev deployment in each cloud, and record live results here.
