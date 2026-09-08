@@ -1,0 +1,8 @@
+environment        = "production"
+location           = "centralindia"
+vnet_cidr          = "10.12.0.0/16"
+kubernetes_version = "1.35"
+node_count         = 4
+subscription_id    = "REPLACE-SUBSCRIPTION-ID"
+acr_name           = "replaceproductionuniqueacr"
+deployer_object_id = "REPLACE-SERVICE-PRINCIPAL-OBJECT-ID"

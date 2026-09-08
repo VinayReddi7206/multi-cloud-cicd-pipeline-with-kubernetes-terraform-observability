@@ -1,0 +1,82 @@
+grafana:
+  service:
+    type: ClusterIP
+  # The chart generates an admin password in a Kubernetes Secret.
+  persistence:
+    enabled: true
+    storageClassName: multicloud-monitoring
+    size: 5Gi
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: monitoring
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    retentionSize: 8GB
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+    serviceMonitorSelector:
+      matchLabels:
+        release: monitoring
+    serviceMonitorNamespaceSelector: {}
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: multicloud-monitoring
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 10Gi
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: multicloud-monitoring
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 2Gi
+# Managed control planes do not expose these endpoints to customer Prometheus.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+additionalPrometheusRulesMap:
+  multicloud:
+    groups:
+      - name: multicloud-app
+        rules:
+          - alert: ApplicationUnavailable
+            expr: absent(up{job="multicloud-app"}) or (max by (namespace) (up{job="multicloud-app"}) == 0)
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: No healthy application scrape targets
+          - alert: ApplicationHighErrorRate
+            expr: |
+              (sum by (namespace) (rate(app_http_requests_total{status=~"5.."}[5m]))
+              / clamp_min(sum by (namespace) (rate(app_http_requests_total[5m])), 0.001)) > 0.05
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: Application server errors exceed five percent
+          - alert: ApplicationHighLatency
+            expr: histogram_quantile(0.95, sum by (le, namespace) (rate(app_http_request_duration_seconds_bucket[5m]))) > 0.5
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: Application p95 latency exceeds 500 ms

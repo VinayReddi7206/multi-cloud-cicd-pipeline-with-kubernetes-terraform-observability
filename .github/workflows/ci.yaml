@@ -1,0 +1,85 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - run: node --test --experimental-test-coverage
+        working-directory: app
+      - run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+          bash scripts/test-deploy.sh
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.19.0
+      - name: Lint and render each environment
+        run: |
+          for environment in dev staging production; do
+            helm lint helm/multicloud-app -f "helm/environments/$environment.yaml"
+            helm template multicloud-app helm/multicloud-app -f "helm/environments/$environment.yaml" --set serviceMonitor.enabled=true > "/tmp/$environment.yaml"
+          done
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        cloud: [azure, aws]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.14.8
+      - run: terraform fmt -check -recursive infra
+      - run: terraform -chdir=infra/${{ matrix.cloud }} init -backend=false -input=false -lockfile=readonly
+      - run: terraform -chdir=infra/${{ matrix.cloud }} validate
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: pip install checkov==3.3.16
+      - run: checkov --config-file .checkov.yaml
+  image:
+    needs: [test, terraform, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - run: docker build --pull -t "multicloud-demo:$GITHUB_SHA" .
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: multicloud-demo:${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: false
+      - run: docker save "multicloud-demo:$GITHUB_SHA" -o image.tar
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tested-image
+          path: image.tar
+          retention-days: 1
+          compression-level: 0

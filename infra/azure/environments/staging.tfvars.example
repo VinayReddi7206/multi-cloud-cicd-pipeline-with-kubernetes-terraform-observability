@@ -1,0 +1,8 @@
+environment        = "staging"
+location           = "centralindia"
+vnet_cidr          = "10.11.0.0/16"
+kubernetes_version = "1.35"
+node_count         = 3
+subscription_id    = "REPLACE-SUBSCRIPTION-ID"
+acr_name           = "replacestaginguniqueacr"
+deployer_object_id = "REPLACE-SERVICE-PRINCIPAL-OBJECT-ID"

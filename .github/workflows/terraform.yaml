@@ -1,0 +1,140 @@
+name: Terraform plan and apply
+on:
+  workflow_dispatch:
+    inputs:
+      cloud:
+        description: Target cloud
+        type: choice
+        options: [azure, aws]
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, staging, production]
+        default: dev
+      apply:
+        description: Apply the saved plan after environment approval
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: terraform-${{ inputs.cloud }}-${{ inputs.environment }}
+  cancel-in-progress: false
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.cloud }}-${{ inputs.environment }}-plan
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VARS_JSON: ${{ vars.TF_VARS_JSON }}
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+      ARM_CLIENT_ID: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.14.8
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: pip install checkov==3.3.16
+      - run: checkov --config-file .checkov.yaml
+      - run: terraform fmt -check -recursive infra
+      - uses: ./.github/actions/cloud-login
+        with:
+          cloud: ${{ inputs.cloud }}
+          azure-client-id: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+          azure-tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          aws-role-arn: ${{ vars.AWS_INFRA_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Initialize the selected state
+        env:
+          CLOUD: ${{ inputs.cloud }}
+          TARGET_ENV: ${{ inputs.environment }}
+        run: bash scripts/terraform-init.sh "$CLOUD" "$TARGET_ENV"
+      - name: Create reviewable plan
+        env:
+          CLOUD: ${{ inputs.cloud }}
+        run: |
+          set -Eeuo pipefail
+          terraform -chdir="infra/$CLOUD" validate
+          terraform -chdir="infra/$CLOUD" plan -input=false -lock-timeout=5m -out=tfplan
+          terraform -chdir="infra/$CLOUD" show -no-color tfplan > "infra/$CLOUD/plan.txt"
+          echo 'Review the plan artifact before approving the apply job.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: terraform-plan
+          path: |
+            infra/${{ inputs.cloud }}/tfplan
+            infra/${{ inputs.cloud }}/plan.txt
+          retention-days: 1
+  apply:
+    needs: plan
+    if: inputs.apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ inputs.cloud }}-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VARS_JSON: ${{ vars.TF_VARS_JSON }}
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+      TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+      ARM_CLIENT_ID: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.14.8
+      - uses: ./.github/actions/cloud-login
+        with:
+          cloud: ${{ inputs.cloud }}
+          azure-client-id: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+          azure-tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          aws-role-arn: ${{ vars.AWS_INFRA_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: terraform-plan
+          path: infra/${{ inputs.cloud }}
+      - name: Initialize the same state
+        env:
+          CLOUD: ${{ inputs.cloud }}
+          TARGET_ENV: ${{ inputs.environment }}
+        run: bash scripts/terraform-init.sh "$CLOUD" "$TARGET_ENV"
+      - name: Apply the saved plan
+        env:
+          CLOUD: ${{ inputs.cloud }}
+        run: terraform -chdir="infra/$CLOUD" apply -input=false -lock-timeout=5m tfplan
+      - name: Show non-secret resource outputs
+        env:
+          CLOUD: ${{ inputs.cloud }}
+        run: terraform -chdir="infra/$CLOUD" output

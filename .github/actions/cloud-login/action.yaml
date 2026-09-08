@@ -1,0 +1,30 @@
+name: Cloud OIDC login
+description: Obtain short-lived credentials for one cloud
+inputs:
+  cloud:
+    required: true
+    description: azure or aws
+  azure-client-id:
+    description: Azure application client ID
+  azure-tenant-id:
+    description: Azure tenant ID
+  azure-subscription-id:
+    description: Azure subscription ID
+  aws-role-arn:
+    description: AWS OIDC role ARN
+  aws-region:
+    description: AWS region
+runs:
+  using: composite
+  steps:
+    - uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+      if: inputs.cloud == 'azure'
+      with:
+        client-id: ${{ inputs.azure-client-id }}
+        tenant-id: ${{ inputs.azure-tenant-id }}
+        subscription-id: ${{ inputs.azure-subscription-id }}
+    - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+      if: inputs.cloud == 'aws'
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}

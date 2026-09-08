@@ -1,0 +1,145 @@
+name: Release to both clouds
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Target environment
+        options: [dev, staging, production]
+        default: dev
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ inputs.environment }}
+  cancel-in-progress: false
+jobs:
+  quality:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yaml
+  publish:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        cloud: [azure, aws]
+    environment: ${{ matrix.cloud }}-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: tested-image
+      - uses: ./.github/actions/cloud-login
+        with:
+          cloud: ${{ matrix.cloud }}
+          azure-client-id: ${{ vars.AZURE_CLIENT_ID }}
+          azure-tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Push the tested image and record its registry digest
+        env:
+          CLOUD: ${{ matrix.cloud }}
+          IMAGE_REPOSITORY: ${{ vars.IMAGE_REPOSITORY }}
+          ACR_NAME: ${{ vars.ACR_NAME }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$IMAGE_REPOSITORY"
+          registry="${IMAGE_REPOSITORY%%/*}"
+          if [[ "$CLOUD" == azure ]]; then
+            az acr login --name "$ACR_NAME"
+          else
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$registry"
+          fi
+          docker load -i image.tar
+          tag="$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          image="$IMAGE_REPOSITORY:$tag"
+          docker tag "multicloud-demo:$GITHUB_SHA" "$image"
+          docker push "$image"
+          digest="$(docker inspect --format '{{json .RepoDigests}}' "$image" | jq -r --arg repo "$IMAGE_REPOSITORY@" '.[] | select(startswith($repo)) | split("@")[1]' | head -n 1)"
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          jq -n --arg repository "$IMAGE_REPOSITORY" --arg digest "$digest" --arg commit "$GITHUB_SHA" \
+            '{repository:$repository,digest:$digest,commit:$commit}' > "release-$CLOUD.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-${{ matrix.cloud }}
+          path: release-${{ matrix.cloud }}.json
+          retention-days: 30
+  deploy:
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        cloud: [azure, aws]
+    # Ephemeral Linux runners with private DNS and network access to each cluster.
+    runs-on: [self-hosted, linux, "${{ matrix.cloud }}", "${{ inputs.environment }}"]
+    timeout-minutes: 35
+    environment: ${{ matrix.cloud }}-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Isolate cluster credentials
+        run: echo "KUBECONFIG=$RUNNER_TEMP/multicloud-kubeconfig" >> "$GITHUB_ENV"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: release-${{ matrix.cloud }}
+      - uses: ./.github/actions/cloud-login
+        with:
+          cloud: ${{ matrix.cloud }}
+          azure-client-id: ${{ vars.AZURE_CLIENT_ID }}
+          azure-tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.19.0
+      - uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4
+        with:
+          version: v1.35.0
+      - uses: azure/use-kubelogin@76597ae0fcbaace21b05e13a2cbf8daee2c6e820 # v1
+        if: matrix.cloud == 'azure'
+        with:
+          kubelogin-version: v0.2.10
+      - name: Connect to the cluster
+        env:
+          CLOUD: ${{ matrix.cloud }}
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -Eeuo pipefail
+          if [[ "$CLOUD" == azure ]]; then
+            az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME" --file "$KUBECONFIG"
+            kubelogin convert-kubeconfig -l azurecli
+          else
+            aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME" --kubeconfig "$KUBECONFIG"
+          fi
+          kubectl cluster-info
+      - name: Install observability
+        env:
+          CLOUD: ${{ matrix.cloud }}
+        run: bash scripts/install-monitoring.sh "$CLOUD"
+      - name: Deploy with rollback and smoke test
+        env:
+          CLOUD: ${{ matrix.cloud }}
+          TARGET_ENV: ${{ inputs.environment }}
+        run: |
+          set -Eeuo pipefail
+          manifest="release-$CLOUD.json"
+          test "$(jq -r .commit "$manifest")" = "$GITHUB_SHA"
+          bash scripts/deploy.sh "$TARGET_ENV" "$CLOUD" "$(jq -r .repository "$manifest")" "$(jq -r .digest "$manifest")" "$GITHUB_SHA"
+      - name: Remove temporary cluster credentials
+        if: always()
+        run: rm -f -- "$KUBECONFIG"

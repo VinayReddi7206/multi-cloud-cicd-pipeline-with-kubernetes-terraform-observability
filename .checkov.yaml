@@ -1,0 +1,8 @@
+directory:
+  - infra
+framework:
+  - terraform
+download-external-modules: false
+skip-download: true
+quiet: true
+compact: true

@@ -1,0 +1,7 @@
+environment        = "staging"
+region             = "ap-south-1"
+kubernetes_version = "1.35"
+node_count         = 3
+vpc_cidr           = "10.21.0.0/16"
+deployer_role_arn  = "arn:aws:iam::REPLACE_ACCOUNT_ID:role/multicloud-staging-deploy"
+provisioner_role_arn = "arn:aws:iam::REPLACE_ACCOUNT_ID:role/multicloud-staging-provision"

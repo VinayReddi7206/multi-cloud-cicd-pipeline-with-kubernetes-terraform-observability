@@ -1,0 +1,5 @@
+resource_group_name  = "REPLACE-WITH-STATE-RESOURCE-GROUP"
+storage_account_name = "REPLACEWITHSTATEACCOUNT"
+container_name       = "tfstate"
+key                  = "multicloud/azure/dev/terraform.tfstate"
+use_azuread_auth      = true
