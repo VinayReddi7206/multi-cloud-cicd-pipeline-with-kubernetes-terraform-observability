@@ -29,7 +29,7 @@ kubectl get secret monitoring-grafana -n monitoring -o jsonpath='{.data.admin-pa
 
 Use login `admin`. Never paste the password into CI logs or a support issue. The Multicloud dashboard covers requests, server-error ratio, p95 latency, app memory and pod CPU/memory. The stack also includes Kubernetes dashboards.
 
-Prometheus metrics use 5-minute rates; send requests and wait for at least two scrapes. An empty error panel can mean no 5xx series has been created yet. During a fresh install, the application-unavailable alert can fire until the app is deployed.
+Prometheus metrics use 5-minute rates; send requests and wait for at least two scrapes. The error panel treats absent 5xx series as zero when request metrics exist. During a fresh install, the application-unavailable alert can fire until the app is deployed.
 
 Azure Terraform enables Container Insights through the monitoring agent and a Log Analytics workspace. AWS control-plane and VPC flow logs go to CloudWatch. Prometheus application metrics are collected separately in each cluster; no shared cross-cloud metrics store is configured.
 
@@ -47,6 +47,8 @@ bash scripts/install-monitoring.sh aws monitoring/alertmanager-slack.values.yaml
 Replace `aws` with `azure` for AKS. Apply this to each cluster that should send alerts. If you want alerts to persist across automated releases, add the same extra values file to the monitoring step in `release.yaml`; otherwise the next release uses default values. Test with a controlled alert in Dev, then verify resolution. Teams is not configured in this version.
 
 ## Rollback and failure drill
+
+For the no-cloud-cost kind deployment, use `./scripts/local-drill.ps1` to verify pod replacement and outage alert firing/recovery. It targets only `app-local` through the dedicated local kubeconfig and refuses external notification integrations. See the [local guide](local-kubernetes.md) for restoration and access commands. The commands below apply to cloud Dev deployments.
 
 A readiness failure causes Helm's atomic upgrade to revert to the prior release. A failed fresh installation is uninstalled. An HTTP smoke-test failure also triggers rollback (or uninstall if there was no previous release). The workflow exits unsuccessfully even when rollback succeeds.
 

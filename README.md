@@ -4,7 +4,7 @@ A Node.js API, Terraform infrastructure for Azure and AWS, Helm deployments, Git
 
 [![CI](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml/badge.svg)](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml)
 
-**Current status:** The app runs in local Kubernetes with Helm, Prometheus/Grafana, persistent monitoring storage, and a verified automatic rollback after a failed upgrade. CI also tests the local Kubernetes deployment. AKS/EKS deployment remains pending; the local demo requires no cloud provisioning. See the [validation record](docs/validation.md) for completed checks and hosted run evidence.
+**Current status:** The app runs in local Kubernetes with Helm, Prometheus/Grafana, and persistent monitoring storage. Automatic rollback, pod replacement, outage alert firing, and recovery have been verified locally and are included in CI. AKS/EKS deployment remains pending; the local demo requires no cloud provisioning. See the [validation record](docs/validation.md) for completed checks and hosted run evidence, or follow the [recruiter demo walkthrough](docs/demo.md).
 
 This is a learning and portfolio project with production-oriented controls. Cloud deployment requires account-specific bootstrap and validation. No cloud resources are created just by cloning this repository or running CI.
 
@@ -100,13 +100,15 @@ For the demo without cloud provisioning, follow the [local Kubernetes guide](doc
 ./scripts/local-up.ps1
 ./scripts/local-access.ps1
 ./scripts/local-verify.ps1 -TestRollback
+./scripts/local-drill.ps1
+./scripts/local-access.ps1
 ```
 
-This runs the application, monitoring, and an actual failed-upgrade rollback on your laptop. The local Grafana dashboard also has Kubernetes CPU and memory metrics. GitHub CI repeats the deployment and rollback on a temporary kind cluster after scanning the image, and records the result in its job summary. Normal CI uploads no image artifact.
+This runs the application, monitoring, an actual failed-upgrade rollback, and a controlled outage/recovery drill on your laptop. The local Grafana dashboard also has Kubernetes CPU and memory metrics. GitHub CI repeats these checks on a temporary kind cluster after scanning the image, and records the results in its job summary. Normal CI uploads no image artifact.
 
 Follow [the cloud setup guide](docs/setup.md). Begin with Dev. Do not create all six clusters as a first step.
 
-- **CI** runs on pull requests and pushes to `main`: tests, Terraform validation, Checkov, image build, Trivy, local Kubernetes deployment, metrics verification, and a real Helm rollback test. HIGH/CRITICAL image findings block the workflow.
+- **CI** runs on pull requests and pushes to `main`: tests, Terraform validation, Checkov, image build, Trivy, local Kubernetes deployment, metrics verification, real Helm rollback, pod replacement, and outage alert recovery. HIGH/CRITICAL image findings block the workflow.
 - **Terraform plan and apply** is manually dispatched for one cloud/environment. It creates a saved plan. Selecting `apply` enables a separate job which must be protected with environment approval.
 - **Release to both clouds** is manually dispatched from `main`: it runs CI, pushes the same tested image to ACR and ECR, installs monitoring, deploys by digest, and runs an HTTP smoke test. Environment selection is the promotion gate; deployment steps are automated.
 - Deployment uses private Linux runners with labels `self-hosted,linux,azure,dev` or `self-hosted,linux,aws,dev` (replace `dev` for other environments).

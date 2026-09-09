@@ -36,9 +36,22 @@ The rollback test deliberately requests a nonexistent image tag with image pulli
 
 Request-rate and latency panels need multiple metric scrapes. Kubernetes CPU and memory panels are available in this mode because the full cluster monitoring stack is installed.
 
+## Prove self-healing and alert recovery
+
+```powershell
+./scripts/local-drill.ps1
+./scripts/local-access.ps1
+```
+
+The drill briefly interrupts this local demo. It deletes one application pod and verifies that the Deployment creates a new ready pod with a different UID and serves the same application version. It then scales the application to zero, waits for the existing `ApplicationUnavailable` rule to fire, and verifies Alertmanager receives it. The original replica count is restored in a `finally` block, including when an outage assertion fails. The final checks require a working Service, healthy scraping, and cleared alerts in both Prometheus and Alertmanager.
+
+Allow about four to six minutes: the rule retains its normal two-minute pending period. The drill rejects nonlocal API addresses and any loaded Alertmanager configuration containing external notification integrations. It sends no Slack/Teams messages. Results and timestamps are written to `.validation/local-drill-result.json`; credentials are excluded.
+
+Run `local-access.ps1` afterward to reconnect to the current pods. Each run restarts only the project's recorded port-forward processes; an old forward can remain listening until a request reveals that its pod is gone. If the terminal or computer is forcibly terminated during the outage, run `local-up.ps1 -SkipBuild` to restore the deployment, then restart local access.
+
 ## CI
 
-Pull requests and pushes to `main` build and scan the image, then deploy that same image into kind on a standard GitHub-hosted Ubuntu runner. CI checks Service access, Prometheus scraping, and an actual failed-upgrade rollback, then removes its temporary cluster. The validation result appears in the job summary.
+Pull requests and pushes to `main` build and scan the image, then deploy that same image into kind on a standard GitHub-hosted Ubuntu runner. CI checks Service access, Prometheus scraping, an actual failed-upgrade rollback, pod replacement, and outage alert firing/recovery, then removes its temporary cluster. Both validation reports appear in the job summary.
 
 Standard hosted runners are free for public repositories. Normal CI keeps the image on the same temporary runner, disables the Trivy cache, and uploads no artifacts. The manually dispatched cloud release still uses a one-day image artifact to pass the tested image to its registry jobs. See [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 

@@ -28,8 +28,12 @@ Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been perf
 | Actual Helm rollback | A deliberately nonexistent image tag failed the upgrade; Helm --atomic restored the working image and the original application Service/version check passed |
 | Local demo automation | PowerShell syntax and actionlint passed; [run 34350649504 passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34350649504) for `e818b98`, including local Kubernetes deployment, Prometheus scraping and actual automatic rollback after the image scan |
 | Grafana browser check | Sign-in, dashboard search, and opening the six-panel application dashboard passed. Browser use exposed an OOM restart with the initial 384Mi limit; the local limit was increased to 768Mi, then navigation was repeated with zero restarts on the replacement pod |
+| Pod self-healing, 2026-09-09 | Deleting the local application pod produced a new ready pod with a different UID; the Service continued to return the original application version after recovery |
+| Outage alert lifecycle, 2026-09-09 | Application scaled to zero at 17:46:12 UTC; the existing two-minute ApplicationUnavailable rule was observed firing at 17:49:09 UTC and was received by local Alertmanager. Original replica count restored; the Service, healthy scraping, and alert clearance passed by 17:49:39 UTC. No external notification receivers were configured |
 
 Normal CI now runs the scanned image in kind on the same standard runner, writes evidence to the job summary, and uploads no artifacts. The two temporary image artifacts from the earlier runs were removed. The manually dispatched cloud release still uses a short-lived image artifact.
+
+The local recovery drill writes `.validation/local-drill-result.json` with individual results and timestamps. CI includes the same drill and adds this report to its job summary; consult the [latest CI runs](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml) for hosted evidence. Follow the [demo walkthrough](demo.md) to reproduce the deployment and recovery checks.
 
 The initial hosted run exposed missing Linux package hashes in lock files generated on Windows. Adding the publisher-verified platform hashes fixed validation without changing provider versions or disabling checksum verification.
 

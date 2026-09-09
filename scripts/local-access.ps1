@@ -8,12 +8,14 @@ $active = @()
 foreach ($record in $records) {
     $process = Get-Process -Id $record.processId -ErrorAction SilentlyContinue
     if ($process -and $process.ProcessName -eq 'kubectl' -and $process.StartTime.ToUniversalTime().Ticks.ToString() -eq $record.startTicks) {
-        if ($Stop) { Stop-Process -Id $process.Id -ErrorAction Stop }
-        else { $active += $record }
+        # A forward may keep listening after its pod disappears until the next request.
+        # Recreate only our recorded processes so every run targets the current pods.
+        Stop-Process -Id $process.Id -ErrorAction Stop
+        $process.WaitForExit()
     }
 }
+'[]' | Set-Content -LiteralPath $recordPath -Encoding utf8
 if ($Stop) {
-    '[]' | Set-Content -LiteralPath $recordPath -Encoding utf8
     Write-Host 'Stopped the project port forwards. Kubernetes continues running locally.'
     return
 }

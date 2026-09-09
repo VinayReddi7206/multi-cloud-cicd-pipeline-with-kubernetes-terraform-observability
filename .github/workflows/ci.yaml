@@ -89,6 +89,9 @@ jobs:
       - name: Verify service, metrics, and automatic rollback
         shell: pwsh
         run: ./scripts/local-verify.ps1 -ExpectedVersion $env:GITHUB_SHA -TestRollback
+      - name: Verify pod replacement, outage alert, and recovery
+        shell: pwsh
+        run: ./scripts/local-drill.ps1
       - name: Record local Kubernetes validation
         if: always()
         shell: pwsh
@@ -97,6 +100,12 @@ jobs:
             '### Local Kubernetes validation' >> $env:GITHUB_STEP_SUMMARY
             '```json' >> $env:GITHUB_STEP_SUMMARY
             Get-Content .validation/local-kubernetes-result.json >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
+          if (Test-Path .validation/local-drill-result.json) {
+            '### Self-healing and alert recovery' >> $env:GITHUB_STEP_SUMMARY
+            '```json' >> $env:GITHUB_STEP_SUMMARY
+            Get-Content .validation/local-drill-result.json >> $env:GITHUB_STEP_SUMMARY
             '```' >> $env:GITHUB_STEP_SUMMARY
           }
       # Only the manually dispatched cloud release needs a cross-job image artifact.
