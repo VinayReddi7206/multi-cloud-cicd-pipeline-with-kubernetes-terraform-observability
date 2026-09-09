@@ -23,7 +23,7 @@ The script downloads kind 0.33.0 into the ignored `.tools` directory and verifie
 | Grafana | http://127.0.0.1:13000 |
 | Prometheus | http://127.0.0.1:19090 |
 
-Grafana's username is `admin`. `local-access.ps1` saves its generated password in `.validation/local-grafana-password.txt`; this is ignored by Git. Open the **Multicloud / Multi-Cloud Application** dashboard. These ports differ from the Docker Compose demo so either mode can be accessed without reusing its ports.
+Grafana's username is `admin`. `local-access.ps1` saves its generated password in `.validation/local-grafana-password.txt`; this is ignored by Git. Under **Dashboards**, find **Multi-Cloud Application**. These ports differ from the Docker Compose demo so either mode can be accessed without reusing its ports.
 
 ## Exercise the deployment
 
