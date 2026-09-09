@@ -28,7 +28,7 @@ jobs:
           version: v3.19.0
       - name: Lint and render each environment
         run: |
-          for environment in dev staging production; do
+          for environment in local dev staging production; do
             helm lint helm/multicloud-app -f "helm/environments/$environment.yaml"
             helm template multicloud-app helm/multicloud-app -f "helm/environments/$environment.yaml" --set serviceMonitor.enabled=true > "/tmp/$environment.yaml"
           done
@@ -63,7 +63,7 @@ jobs:
   image:
     needs: [test, terraform, security]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -76,10 +76,43 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: false
+          cache: false
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.19.0
+      - uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4
+        with:
+          version: v1.35.0
+      - name: Deploy the scanned image to local Kubernetes
+        shell: pwsh
+        run: ./scripts/local-up.ps1 -ImageTag $env:GITHUB_SHA -SkipBuild
+      - name: Verify service, metrics, and automatic rollback
+        shell: pwsh
+        run: ./scripts/local-verify.ps1 -ExpectedVersion $env:GITHUB_SHA -TestRollback
+      - name: Record local Kubernetes validation
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path .validation/local-kubernetes-result.json) {
+            '### Local Kubernetes validation' >> $env:GITHUB_STEP_SUMMARY
+            '```json' >> $env:GITHUB_STEP_SUMMARY
+            Get-Content .validation/local-kubernetes-result.json >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
+      # Only the manually dispatched cloud release needs a cross-job image artifact.
       - run: docker save "multicloud-demo:$GITHUB_SHA" -o image.tar
+        if: github.event_name == 'workflow_dispatch'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: github.event_name == 'workflow_dispatch'
         with:
           name: tested-image
           path: image.tar
           retention-days: 1
           compression-level: 0
+      - name: Remove the temporary CI cluster
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path .tools/kind/kind) {
+            & .tools/kind/kind delete cluster --name multicloud-local --kubeconfig .validation/kubeconfig-local
+          }

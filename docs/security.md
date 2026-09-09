@@ -2,6 +2,10 @@
 
 This repository demonstrates security controls; it does not establish regulatory compliance or certify a production environment.
 
+## Local demonstration
+
+The local kind profile uses a dedicated kubeconfig and loopback-only API/service access. Its helper scripts reject remote Docker sockets and Kubernetes API addresses. Runtime credentials and port-forward records stay in the ignored `.validation` directory. kind's default CNI does not enforce NetworkPolicy, so that feature is disabled explicitly in the local profile; cloud profiles retain it. The local CI test verifies deployment and rollback, not cloud network isolation or cloud identity permissions.
+
 ## Implemented controls
 
 - GitHub OIDC with separate planning, provisioning and application identities; exact environment trust subjects are configured during bootstrap.

@@ -4,7 +4,7 @@ A Node.js API, Terraform infrastructure for Azure and AWS, Helm deployments, Git
 
 [![CI](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml/badge.svg)](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml)
 
-**Current status:** Local Docker deployment, application metrics, Grafana provisioning, and the application image security scan are verified. [GitHub-hosted CI passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34254299244), including tests, both Terraform roots, Checkov, Docker build, and Trivy. Cloud deployment is the next milestone.
+**Current status:** The app runs in local Kubernetes with Helm, Prometheus/Grafana, persistent monitoring storage, and a verified automatic rollback after a failed upgrade. CI also tests the local Kubernetes deployment. AKS/EKS deployment remains pending; the local demo requires no cloud provisioning. See the [validation record](docs/validation.md) for completed checks and hosted run evidence.
 
 This is a learning and portfolio project with production-oriented controls. Cloud deployment requires account-specific bootstrap and validation. No cloud resources are created just by cloning this repository or running CI.
 
@@ -42,6 +42,7 @@ infra/azure/                 AKS, VNet, identity, ACR, Azure Monitor
 helm/multicloud-app/          Shared application chart
 helm/environments/           Environment-specific Helm values
 monitoring/                  Metrics storage, alerts, Grafana dashboard, local setup
+local/                       Pinned kind cluster for the local Kubernetes demo
 .github/actions/             Shared OIDC authentication
 .github/workflows/           CI, cloud release, Terraform plan/apply
 scripts/                     Preflight, deployment, monitoring, backend initialization
@@ -93,9 +94,19 @@ Open [the API](http://localhost:8080/api/info), [Prometheus](http://localhost:90
 
 ## Cloud setup and releases
 
+For the demo without cloud provisioning, follow the [local Kubernetes guide](docs/local-kubernetes.md):
+
+```powershell
+./scripts/local-up.ps1
+./scripts/local-access.ps1
+./scripts/local-verify.ps1 -TestRollback
+```
+
+This runs the application, monitoring, and an actual failed-upgrade rollback on your laptop. The local Grafana dashboard also has Kubernetes CPU and memory metrics. GitHub CI repeats the deployment and rollback on a temporary kind cluster after scanning the image, and records the result in its job summary. Normal CI uploads no image artifact.
+
 Follow [the cloud setup guide](docs/setup.md). Begin with Dev. Do not create all six clusters as a first step.
 
-- **CI** runs on pull requests and pushes to `main`: tests, Terraform validation, Checkov, image build, and Trivy. HIGH/CRITICAL image findings block the workflow.
+- **CI** runs on pull requests and pushes to `main`: tests, Terraform validation, Checkov, image build, Trivy, local Kubernetes deployment, metrics verification, and a real Helm rollback test. HIGH/CRITICAL image findings block the workflow.
 - **Terraform plan and apply** is manually dispatched for one cloud/environment. It creates a saved plan. Selecting `apply` enables a separate job which must be protected with environment approval.
 - **Release to both clouds** is manually dispatched from `main`: it runs CI, pushes the same tested image to ACR and ECR, installs monitoring, deploys by digest, and runs an HTTP smoke test. Environment selection is the promotion gate; deployment steps are automated.
 - Deployment uses private Linux runners with labels `self-hosted,linux,azure,dev` or `self-hosted,linux,aws,dev` (replace `dev` for other environments).

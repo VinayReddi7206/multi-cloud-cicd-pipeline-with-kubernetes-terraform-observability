@@ -1,0 +1,12 @@
+environment: dev
+cloud: local
+replicaCount: 1
+image:
+  pullPolicy: Never
+serviceMonitor:
+  enabled: true
+podDisruptionBudget:
+  enabled: false
+# kind's default CNI does not enforce NetworkPolicy. Cloud profiles retain it.
+networkPolicy:
+  enabled: false

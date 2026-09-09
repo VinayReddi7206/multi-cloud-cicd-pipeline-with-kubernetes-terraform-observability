@@ -1,6 +1,6 @@
 # Validation record
 
-Validated locally and in GitHub Actions on 2026-09-08. Cloud deployment has not been performed.
+Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been performed. The local Kubernetes demo uses no cloud resources.
 
 | Check | Result |
 | --- | --- |
@@ -11,7 +11,7 @@ Validated locally and in GitHub Actions on 2026-09-08. Cloud deployment has not 
 | AWS Terraform provider validation | Passed, using locked AWS provider 6.63.0 |
 | Azure Terraform provider validation | Passed, using locked AzureRM provider 4.81.0 |
 | Checkov 3.3.16 | 44 passed, 0 failed, 11 explicitly skipped, 0 parsing errors |
-| Helm application lint | Passed for Dev, Staging, and Production |
+| Helm application lint | Passed for Local, Dev, Staging, and Production |
 | Application chart rendering | Production resources parsed; replica count and readiness endpoint verified |
 | Monitoring chart rendering | Pinned kube-prometheus-stack 88.6.1 rendered 107 resources; scrape selector, persistent storage and application alerts verified |
 | GitHub Actions validation | actionlint 1.7.12 passed; custom runner labels declared |
@@ -23,6 +23,12 @@ Validated locally and in GitHub Actions on 2026-09-08. Cloud deployment has not 
 | GitHub publication | Published to the [public portfolio repository](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability) on main; local credentials and generated files excluded; Trivy source secret scan passed before publication |
 | GitHub-hosted CI | [Run 34254299244 passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34254299244) for commit `96ec975`: application and deployment-script tests, Helm checks, AWS/Azure Terraform validation, Checkov, Docker build, Trivy and tested-image artifact upload |
 | Terraform platform locking | HashiCorp-signed provider packages verified for Windows AMD64 and Linux AMD64; both platform hashes committed so Linux CI can initialize with a read-only lock file |
+| Local Kubernetes deployment, 2026-09-09 | kind 0.33.0 with pinned Kubernetes 1.35.8; Node.js Service responds with cloud=local; dedicated kubeconfig leaves the user's default context separate |
+| Local Kubernetes monitoring | kube-prometheus-stack 88.6.1 deployed; three persistent volumes bound; application scrape target is up; Grafana authenticates, loads the dashboard and connects to Prometheus; CPU, memory, request rate, latency and zero-error queries return data |
+| Actual Helm rollback | A deliberately nonexistent image tag failed the upgrade; Helm --atomic restored the working image and the original application Service/version check passed |
+| Local demo automation | PowerShell syntax and actionlint passed; CI now runs the local deployment and rollback after the image scan. See the [current CI runs](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml) for hosted results |
+
+Normal CI now runs the scanned image in kind on the same standard runner, writes evidence to the job summary, and uploads no artifacts. The two temporary image artifacts from the earlier runs were removed. The manually dispatched cloud release still uses a short-lived image artifact.
 
 The initial hosted run exposed missing Linux package hashes in lock files generated on Windows. Adding the publisher-verified platform hashes fixed validation without changing provider versions or disabling checksum verification.
 
