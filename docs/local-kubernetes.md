@@ -36,6 +36,8 @@ The rollback test deliberately requests a nonexistent image tag with image pulli
 
 Request-rate and latency panels need multiple metric scrapes. Kubernetes CPU and memory panels are available in this mode because the full cluster monitoring stack is installed.
 
+Verification waits up to five minutes for the initial application scrape, independently of pod readiness. A scrape timeout prints the application target health, monitoring pod status, ServiceMonitor and endpoint discovery information. The result file is replaced at the start of each verification and records failures, so an earlier successful report cannot mask a later failed check.
+
 ## Prove self-healing and alert recovery
 
 ```powershell

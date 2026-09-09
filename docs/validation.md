@@ -32,12 +32,15 @@ Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been perf
 | Outage alert lifecycle, 2026-09-09 | Application scaled to zero at 17:46:12 UTC; the existing two-minute ApplicationUnavailable rule was observed firing at 17:49:09 UTC and was received by local Alertmanager. Original replica count restored; the Service, healthy scraping, and alert clearance passed by 17:49:39 UTC. No external notification receivers were configured |
 | GitHub deployment bootstrap, 2026-09-09 | Created and read back all 12 AWS/Azure Plan and target environments. All restrict deployment to main; the 6 targets require a reviewer. Repeating Dev bootstrap preserved the existing rules and passed |
 | Cloud readiness report, 2026-09-09 | Correctly reported Dev blocked: cloud deployment disabled, cloud variables missing, and no private runners registered. The report includes variable names and protection status without credential values |
+| Cloud workflow access guard | Test dispatches [34388233090](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34388233090) and [34388236606](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34388236606) stopped at the disabled access check as intended. Terraform plan/apply and release quality/publish/deploy jobs were skipped |
 
 Normal CI now runs the scanned image in kind on the same standard runner, writes evidence to the job summary, and uploads no artifacts. The two temporary image artifacts from the earlier runs were removed. The manually dispatched cloud release still uses a short-lived image artifact.
 
 The local recovery drill writes `.validation/local-drill-result.json` with individual results and timestamps. CI includes the same drill and adds this report to its job summary; consult the [latest CI runs](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/workflows/ci.yaml) for hosted evidence. Follow the [demo walkthrough](demo.md) to reproduce the deployment and recovery checks.
 
 The initial hosted run exposed missing Linux package hashes in lock files generated on Windows. Adding the publisher-verified platform hashes fixed validation without changing provider versions or disabling checksum verification.
+
+Run 34388112386 passed its static/security gates and deployed the application, but its initial Prometheus scrape check timed out after 90 seconds. That run did not capture enough target details to establish the discovery failure's cause. Verification now allows a bounded five-minute discovery period, reports elapsed time and failure diagnostics, and replaces stale result files before checking. Consult subsequent hosted runs for the new behavior; the original timeout is retained here as part of the validation history.
 
 ## Not yet verified
 
