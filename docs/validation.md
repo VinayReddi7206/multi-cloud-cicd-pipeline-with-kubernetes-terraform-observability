@@ -30,6 +30,8 @@ Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been perf
 | Grafana browser check | Sign-in, dashboard search, and opening the six-panel application dashboard passed. Browser use exposed an OOM restart with the initial 384Mi limit; the local limit was increased to 768Mi, then navigation was repeated with zero restarts on the replacement pod |
 | Pod self-healing, 2026-09-09 | Deleting the local application pod produced a new ready pod with a different UID; the Service continued to return the original application version after recovery |
 | Outage alert lifecycle, 2026-09-09 | Application scaled to zero at 17:46:12 UTC; the existing two-minute ApplicationUnavailable rule was observed firing at 17:49:09 UTC and was received by local Alertmanager. Original replica count restored; the Service, healthy scraping, and alert clearance passed by 17:49:39 UTC. No external notification receivers were configured |
+| GitHub deployment bootstrap, 2026-09-09 | Created and read back all 12 AWS/Azure Plan and target environments. All restrict deployment to main; the 6 targets require a reviewer. Repeating Dev bootstrap preserved the existing rules and passed |
+| Cloud readiness report, 2026-09-09 | Correctly reported Dev blocked: cloud deployment disabled, cloud variables missing, and no private runners registered. The report includes variable names and protection status without credential values |
 
 Normal CI now runs the scanned image in kind on the same standard runner, writes evidence to the job summary, and uploads no artifacts. The two temporary image artifacts from the earlier runs were removed. The manually dispatched cloud release still uses a short-lived image artifact.
 

@@ -23,6 +23,17 @@ jobs:
       - run: |
           for script in scripts/*.sh; do bash -n "$script"; done
           bash scripts/test-deploy.sh
+      - name: Check PowerShell script syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          Get-ChildItem scripts -Filter '*.ps1' | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            $failures += $errors
+          }
+          if ($failures.Count) { $failures | Format-List; exit 1 }
       - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
         with:
           version: v3.19.0

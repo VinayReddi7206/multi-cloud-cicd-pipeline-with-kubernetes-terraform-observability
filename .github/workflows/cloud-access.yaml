@@ -1,0 +1,20 @@
+name: Cloud deployment access
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require enabled cloud deployment and main branch
+        env:
+          CLOUD_DEPLOYMENTS_ENABLED: ${{ vars.CLOUD_DEPLOYMENTS_ENABLED }}
+        run: |
+          set -Eeuo pipefail
+          if [[ "$GITHUB_REF" != refs/heads/main || "$CLOUD_DEPLOYMENTS_ENABLED" != true ]]; then
+            echo 'Cloud deployment is disabled. No provisioning, registry publishing, or private-runner deployment was started.' >> "$GITHUB_STEP_SUMMARY"
+            echo '::error::Cloud deployment requires main and CLOUD_DEPLOYMENTS_ENABLED=true after account, cost, and bootstrap review.'
+            exit 1
+          fi

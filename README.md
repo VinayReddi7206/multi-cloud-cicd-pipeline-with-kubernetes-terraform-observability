@@ -8,6 +8,8 @@ A Node.js API, Terraform infrastructure for Azure and AWS, Helm deployments, Git
 
 This is a learning and portfolio project with production-oriented controls. Cloud deployment requires account-specific bootstrap and validation. No cloud resources are created just by cloning this repository or running CI.
 
+The live multi-cloud deliverable is still pending. See the [completion criteria](docs/completion.md) for the remaining acceptance checks. Cloud workflows are disabled until funding and cloud bootstrap are ready; GitHub environment setup and a configuration readiness report are automated in the [setup guide](docs/setup.md).
+
 ## Architecture
 
 ```mermaid

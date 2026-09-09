@@ -17,6 +17,19 @@ CI uses `-lockfile=readonly`, so it requires these platform checksums to be comm
 
 Create a GitHub repository, add it as the origin, and push the reviewed files to a `main` branch. No remote repository or account is assumed. Require CI checks in branch protection, and restrict deployment environments to `main`.
 
+Bootstrap the GitHub deployment environments with an authenticated repository administrator:
+
+```powershell
+./scripts/github-bootstrap.ps1 -Repository OWNER/REPOSITORY -Reviewer GITHUB_LOGIN
+./scripts/cloud-readiness.ps1 -Repository OWNER/REPOSITORY -Environment dev
+```
+
+The bootstrap creates the twelve AWS/Azure Plan and target environments, restricts each to the `main` branch, and requires the selected reviewer on target environments. A single-person portfolio allows the initiator to review their own deployment; use independent reviewers and prevent self-review for a team production deployment. Existing environments are checked and preserved; incompatible protections stop setup for review. Secrets, cloud identities and cloud resources are not created by this script.
+
+Cloud Terraform and release workflows require the repository variable `CLOUD_DEPLOYMENTS_ENABLED=true` before any provisioning, image artifact build/publish, or private-runner jobs start. Bootstrap defaults this variable to `false` and refuses to run if it is enabled. Keep it disabled while the project has no cloud budget or credits. This workflow setting is not a provider billing cap and does not control resources created outside these workflows.
+
+`cloud-readiness.ps1` checks GitHub environment protection, required variable names, the selected environment in `TF_VARS_JSON`, and an available matching private runner. It stores a report under the ignored `.validation/github` directory and exits with code 2 while configuration is incomplete. It never prints variable values. Passing this report does not validate account credits, cloud permissions, private DNS, quotas, or live deployment. Complete the following cloud bootstrap steps before enabling deployment.
+
 ## 2. Bootstrap state and identities
 
 Do this once using an authenticated administrative session. Bootstrap resources must outlive the clusters.

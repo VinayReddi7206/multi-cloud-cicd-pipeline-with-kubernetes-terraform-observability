@@ -10,6 +10,7 @@ The local kind profile uses a dedicated kubeconfig and loopback-only API/service
 
 - GitHub OIDC with separate planning, provisioning and application identities; exact environment trust subjects are configured during bootstrap.
 - Read-only default workflow permissions, job-scoped OIDC permission, exact commit pins for third-party actions and top-level Terraform modules, and provider lock files.
+- Cloud workflows require an explicit repository enable setting before starting cloud jobs. It is disabled for the current zero-budget demo. This controls these workflows only, not cloud billing or actions outside the repository.
 - Private AKS/EKS API endpoints, managed identities, RBAC, no AKS local administrator account, private AWS worker subnets and enforced metadata tokens.
 - ECR KMS encryption, rotation and immutable tags; no ACR admin/password login or anonymous pulls.
 - Non-root containers, read-only root filesystems, no Linux capabilities, no Kubernetes service account token, resource limits, probes, restricted application namespaces, and application network policies. The sample API needs no outbound network access.

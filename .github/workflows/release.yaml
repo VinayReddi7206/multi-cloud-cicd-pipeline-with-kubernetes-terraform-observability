@@ -13,7 +13,10 @@ concurrency:
   group: release-${{ inputs.environment }}
   cancel-in-progress: false
 jobs:
+  access:
+    uses: ./.github/workflows/cloud-access.yaml
   quality:
+    needs: access
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/ci.yaml
   publish:
