@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101c26">
+  <meta name="description" content="Vinay Reddi's Kubernetes CI/CD portfolio: explore verified deployments, security checks, monitoring and recovery tests, with Terraform configurations for AWS and Azure.">
+  <meta property="og:title" content="Multi-Cloud Delivery Lab — Vinay Reddi">
+  <meta property="og:description" content="From commit to recovery. Explore a tested Kubernetes delivery pipeline and its evidence. Live AKS/EKS deployment remains pending.">
+  <meta property="og:type" content="website">
+  <title>Multi-Cloud Delivery Lab — Vinay Reddi</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="header wrap">
+    <a class="brand" href="#main"><span class="brand-mark" aria-hidden="true">M/</span><span>Multi-Cloud<br><strong>Delivery Lab</strong></span></a>
+    <nav aria-label="Main navigation"><a href="#pipeline">Pipeline</a><a href="#observability">Observability</a><a href="#architecture">Architecture</a><a class="source-link" href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability">Source code <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="intro">
+        <p class="eyebrow">DEVOPS PORTFOLIO <span>/</span> VINAY REDDI</p>
+        <h1 id="hero-title">From commit<br>to <em>recovery.</em></h1>
+        <p class="lead">A container delivery pipeline that tests the code, checks security, deploys to Kubernetes, and proves it can recover.</p>
+        <div class="actions"><a class="button primary" href="#pipeline">Explore the pipeline <span aria-hidden="true">↓</span></a><a class="button secondary" href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34441265809">View passing CI <span aria-hidden="true">↗</span></a></div>
+        <p class="scope"><strong>Local Kubernetes verified.</strong> This public showcase presents recorded results. AWS EKS and Azure AKS deployment remains pending.</p>
+      </div>
+      <aside class="proof" aria-labelledby="proof-title">
+        <div class="proof-top"><h2 id="proof-title">VERIFICATION RECORD</h2><span class="pass">Passed</span></div>
+        <div class="proof-flow"><div><span class="check" aria-hidden="true">✓</span><span>Code &amp; infrastructure tests</span></div><div><span class="check" aria-hidden="true">✓</span><span>Container security gate</span></div><div><span class="check" aria-hidden="true">✓</span><span>Kubernetes &amp; metrics checks</span></div><div><span class="check" aria-hidden="true">✓</span><span>Rollback &amp; outage recovery</span></div></div>
+        <div class="proof-bottom"><span>Validated on temporary kind clusters</span><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34441265809">Inspect the run <span aria-hidden="true">↗</span></a></div>
+      </aside>
+    </section>
+    <div class="stack-band"><div class="wrap stack"><span>BUILT WITH</span><span>Node.js</span><span>Docker</span><span>Kubernetes</span><span>Helm</span><span>Terraform</span><span>GitHub Actions</span><span>Prometheus</span><span>Grafana</span></div></div>
+    <section class="section wrap pipeline" id="pipeline" aria-labelledby="pipeline-title">
+      <div class="section-intro"><p class="eyebrow">01 / DELIVERY</p><h2 id="pipeline-title">Every release<br>has to earn it.</h2><p>Open a stage to see what it checks and why it matters. The evidence links lead to the actual workflow and validation records.</p><a class="text-link" href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/.github/workflows/ci.yaml">Read the complete workflow <span aria-hidden="true">↗</span></a></div>
+      <div class="stages">
+        <details open><summary><span class="stage-number">01</span><span>Test the change<small>Node.js · Terraform · Helm</small></span><span class="expand" aria-hidden="true">+</span></summary><div class="stage-body"><p>Application tests check API behavior and graceful shutdown. Terraform validation checks both cloud configurations. Helm lint and rendering cover Local, Dev, Staging and Production.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/tree/main/app">Explore the application and tests ↗</a></div></details>
+        <details><summary><span class="stage-number">02</span><span>Check security<small>Checkov · Trivy · non-root container</small></span><span class="expand" aria-hidden="true">+</span></summary><div class="stage-body"><p>Checkov scans infrastructure with documented exceptions. Trivy blocks the image on HIGH or CRITICAL findings, including unfixed vulnerabilities. The application runs as a non-root user.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/docs/security.md">Review security coverage and exceptions ↗</a></div></details>
+        <details><summary><span class="stage-number">03</span><span>Deploy the tested image<small>Docker · kind · Helm</small></span><span class="expand" aria-hidden="true">+</span></summary><div class="stage-body"><p>CI loads the scanned Docker image into a temporary local Kubernetes cluster. Helm deploys the service, then checks verify its identity, readiness and Prometheus scrape health.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/scripts/local-verify.ps1">Inspect deployment verification ↗</a></div></details>
+        <details><summary><span class="stage-number">04</span><span>Observe the service<small>Prometheus · Grafana · Alertmanager</small></span><span class="expand" aria-hidden="true">+</span></summary><div class="stage-body"><p>Six dashboard panels cover traffic, server errors, p95 latency, application memory, pod CPU and pod memory. CI also checks Grafana authentication and the Prometheus data source.</p><a href="#observability">View the recorded monitoring results ↓</a></div></details>
+        <details><summary><span class="stage-number">05</span><span>Prove recovery<small>Failed upgrade · pod replacement · outage</small></span><span class="expand" aria-hidden="true">+</span></summary><div class="stage-body"><p>A deliberately unavailable image triggers a real Helm rollback. A deleted pod is replaced. A controlled outage fires the two-minute availability alert; restoring the service clears it in Prometheus and local Alertmanager.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/docs/validation.md">Read the verification history ↗</a></div></details>
+      </div>
+    </section>
+    <section class="observability" id="observability" aria-labelledby="observability-title"><div class="wrap section">
+      <div class="section-heading"><div><p class="eyebrow">02 / OBSERVABILITY</p><h2 id="observability-title">Evidence you can inspect.</h2></div><p class="record-label">Recorded local health check<br><time datetime="2026-09-10T05:06:55Z">10 Sep 2026 · 10:36 AM IST</time></p></div>
+      <div class="metrics"><article><p>Prometheus targets</p><strong>15<span>/15</span></strong><span>Healthy at the recorded check</span></article><article><p>Ready pods</p><strong>7<span>/7</span></strong><span>1 application + 6 monitoring</span></article><article><p>Dashboard panels</p><strong>6<span>/6</span></strong><span>Queries returned finite data</span></article><article><p>Persistent volumes</p><strong>3<span>/3</span></strong><span>Monitoring volumes bound</span></article></div>
+      <div class="evidence-footer"><p>This is a saved snapshot, not a live feed from the laptop. No unexpected alerts were present; the expected Watchdog alert was active.</p><a class="button secondary" href="health-check.json">Open the health report <span aria-hidden="true">↗</span></a></div>
+    </div></section>
+    <section class="section wrap" id="architecture" aria-labelledby="architecture-title">
+      <div class="section-heading"><div><p class="eyebrow">03 / ARCHITECTURE</p><h2 id="architecture-title">One chart. Two cloud targets.</h2></div><p>Shared application packaging, separate infrastructure and environments for each cloud.</p></div>
+      <div class="architecture-grid">
+        <article class="architecture-card verified"><span class="state">DEPLOYED &amp; TESTED</span><h3>Local Kubernetes</h3><p class="platform">kind on Docker</p><div class="architecture-path"><span>Scanned container image</span><span aria-hidden="true">↓</span><span>Helm → Kubernetes Service</span><span aria-hidden="true">↓</span><span>Prometheus + Grafana</span></div><p>Runs on the demo machine and on temporary CI runners. Includes recovery drills and persistent monitoring storage.</p></article>
+        <article class="architecture-card"><span class="state pending">CONFIGURATION VALIDATED</span><h3>Amazon Web Services</h3><p class="platform">ECR → EKS</p><p>Terraform defines networking, cluster resources, identity and storage. Dev, Staging and Production examples are included.</p><p class="limitation">Live provisioning, registry publishing and deployment verification are pending.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/tree/main/infra/aws">Inspect AWS infrastructure ↗</a></article>
+        <article class="architecture-card"><span class="state pending">CONFIGURATION VALIDATED</span><h3>Microsoft Azure</h3><p class="platform">ACR → AKS</p><p>Terraform defines networking, cluster resources, managed identity, registry and Azure Monitor configuration.</p><p class="limitation">Live provisioning, registry publishing and Azure Monitor verification are pending.</p><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/tree/main/infra/azure">Inspect Azure infrastructure ↗</a></article>
+      </div>
+      <p class="architecture-note">Cloud workflows are disabled under a ₹0 cloud budget. The cloud targets are independent deployments; automatic cross-cloud failover is not implemented.</p>
+    </section>
+    <section class="review wrap" aria-labelledby="review-title"><div><p class="eyebrow">TAKE A CLOSER LOOK</p><h2 id="review-title">Follow the evidence.<br>Run it yourself.</h2><p>The repository includes setup instructions, security decisions, known limitations and a ten-minute demonstration guide.</p></div><div class="review-links"><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/docs/demo.md">Demo walkthrough <span aria-hidden="true">↗</span></a><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/releases/tag/v0.1.0-local-demo">Verified release <span aria-hidden="true">↗</span></a><a href="https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/blob/main/docs/completion.md">Completed &amp; remaining work <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+  <footer class="footer wrap"><span>VINAY REDDI <span aria-hidden="true">/</span> MULTI-CLOUD DELIVERY LAB</span><p>Public project showcase · Local system verified · Cloud deployment pending</p></footer>
+</body>
+</html>
