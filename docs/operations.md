@@ -27,7 +27,7 @@ In a private terminal, obtain the generated Grafana password:
 kubectl get secret monitoring-grafana -n monitoring -o jsonpath='{.data.admin-password}' | base64 --decode
 ```
 
-Use login `admin`. Never paste the password into CI logs or a support issue. The Multicloud dashboard covers requests, server-error ratio, p95 latency, app memory and pod CPU/memory. The stack also includes Kubernetes dashboards.
+The initial login is `admin`; use the `admin-user` key of the same Secret if the managed username has changed. Never paste the password into CI logs or a support issue. The Multicloud dashboard covers requests, server-error ratio, p95 latency, app memory and pod CPU/memory. The stack also includes Kubernetes dashboards.
 
 Prometheus metrics use 5-minute rates; send requests and wait for at least two scrapes. The error panel treats absent 5xx series as zero when request metrics exist. During a fresh install, the application-unavailable alert can fire until the app is deployed.
 

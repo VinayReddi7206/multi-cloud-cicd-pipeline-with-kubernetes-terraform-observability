@@ -52,7 +52,9 @@ foreach ($service in $services) {
     if (-not $ready) { throw "The $($service.name) port forward failed; inspect .validation/$($service.name)-port-forward-error.log." }
     Write-Host "$($service.name): http://127.0.0.1:$($service.port)"
 }
-$encodedPassword = Invoke-Checked kubectl ($LocalKubeArgs + @('get', 'secret', 'monitoring-grafana', '-n', 'monitoring', '-o', 'jsonpath={.data.admin-password}'))
+$grafanaSecret = (Invoke-Checked kubectl ($LocalKubeArgs + @('get', 'secret', 'monitoring-grafana', '-n', 'monitoring', '-o', 'json'))) | ConvertFrom-Json
+$grafanaUsername = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($grafanaSecret.data.'admin-user'))
 $passwordPath = Join-Path $LocalState 'local-grafana-password.txt'
-[System.IO.File]::WriteAllText($passwordPath, [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($encodedPassword)))
-Write-Host 'Grafana username: admin. Password saved in the Git-ignored .validation/local-grafana-password.txt file.'
+[System.IO.File]::WriteAllText($passwordPath, [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($grafanaSecret.data.'admin-password')))
+[System.IO.File]::WriteAllText((Join-Path $LocalState 'local-grafana-username.txt'), $grafanaUsername)
+Write-Host "Grafana username: $grafanaUsername. Password saved in the Git-ignored .validation/local-grafana-password.txt file."

@@ -36,7 +36,13 @@ try {
     $repoArgs = @('--repository-config', (Join-Path $LocalState 'local-helm-repositories.yaml'), '--repository-cache', (Join-Path $LocalState 'local-helm-cache'))
     Invoke-Checked $helm (@('repo', 'add', 'prometheus-community', 'https://prometheus-community.github.io/helm-charts', '--force-update') + $repoArgs)
     Invoke-Checked $helm (@('repo', 'update', 'prometheus-community') + $repoArgs)
-    Invoke-Checked $helm (@('upgrade', '--install', 'monitoring', 'prometheus-community/kube-prometheus-stack', '--version', '88.6.1', '--namespace', 'monitoring', '--create-namespace', '--kubeconfig', $LocalKubeconfig, '--kube-context', $LocalContext, '-f', 'monitoring/values.yaml', '-f', 'monitoring/local-kubernetes.values.yaml', '--atomic', '--wait', '--timeout', '15m') + $repoArgs)
+    $grafanaArgs = @()
+    $existingGrafana = Invoke-Checked kubectl ($LocalKubeArgs + @('get', 'secret', 'monitoring-grafana', '-n', 'monitoring', '--ignore-not-found', '-o', 'json'))
+    if ($existingGrafana) {
+        $adminUser = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($existingGrafana | ConvertFrom-Json).data.'admin-user'))
+        $grafanaArgs = @('--set-literal', "grafana.adminUser=$adminUser")
+    }
+    Invoke-Checked $helm (@('upgrade', '--install', 'monitoring', 'prometheus-community/kube-prometheus-stack', '--version', '88.6.1', '--namespace', 'monitoring', '--create-namespace', '--kubeconfig', $LocalKubeconfig, '--kube-context', $LocalContext, '-f', 'monitoring/values.yaml', '-f', 'monitoring/local-kubernetes.values.yaml', '--atomic', '--wait', '--timeout', '15m') + $repoArgs + $grafanaArgs)
 
     $dashboard = Invoke-Checked kubectl ($LocalKubeArgs + @('create', 'configmap', 'multicloud-dashboard', '-n', 'monitoring', '--from-file=multicloud.json=monitoring/dashboards/multicloud.json', '--dry-run=client', '-o', 'json'))
     $dashboard | & kubectl @LocalKubeArgs apply -f -

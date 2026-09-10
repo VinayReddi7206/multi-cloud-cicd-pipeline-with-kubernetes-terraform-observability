@@ -1,6 +1,6 @@
 # Validation record
 
-Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been performed. The local Kubernetes demo uses no cloud resources.
+Checks recorded on 2026-09-08 through 2026-09-10. Cloud deployment has not been performed. The local Kubernetes demo uses no cloud resources.
 
 | Check | Result |
 | --- | --- |
@@ -33,6 +33,9 @@ Checks recorded on 2026-09-08 and 2026-09-09. Cloud deployment has not been perf
 | GitHub deployment bootstrap, 2026-09-09 | Created and read back all 12 AWS/Azure Plan and target environments. All restrict deployment to main; the 6 targets require a reviewer. Repeating Dev bootstrap preserved the existing rules and passed |
 | Cloud readiness report, 2026-09-09 | Correctly reported Dev blocked: cloud deployment disabled, cloud variables missing, and no private runners registered. The report includes variable names and protection status without credential values |
 | Cloud workflow access guard | Test dispatches [34388233090](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34388233090) and [34388236606](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34388236606) stopped at the disabled access check as intended. Terraform plan/apply and release quality/publish/deploy jobs were skipped |
+| Hosted monitoring verification update | [Run 34389008955 passed](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34389008955) for commit ccbe5fc, including cluster setup, scraping, rollback, pod replacement and alert recovery |
+| Grafana credential recovery, 2026-09-10 | The administrator had been renamed in Grafana, while the access helper still assumed admin. Restored the managed password, verified the actual account name before synchronizing the Secret, and confirmed authenticated dashboard/data-source access. The normal check then passed without recovery. Repeated the local Helm upgrade and confirmed the managed username and working login were preserved |
+| Local monitoring audit, 2026-09-10 | All 15 scrape targets healthy, all 6 dashboard queries returned data, and all 3 monitoring PVCs bound. Temporary pending missed-evaluation warnings cleared; only the expected Watchdog alert remained |
 
 Normal CI now runs the scanned image in kind on the same standard runner, writes evidence to the job summary, and uploads no artifacts. The two temporary image artifacts from the earlier runs were removed. The manually dispatched cloud release still uses a short-lived image artifact.
 

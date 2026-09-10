@@ -8,9 +8,13 @@ kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f 
 kubectl apply -f "monitoring/storage-class-$cloud.yaml"
 extra=()
 if [[ -n "${2:-}" ]]; then extra=(-f "$2"); fi
+# Preserve a managed admin username if it was synchronized after a profile rename.
+admin=()
+admin_user="$(kubectl get secret monitoring-grafana -n monitoring --ignore-not-found -o jsonpath='{.data.admin-user}')"
+if [[ -n "$admin_user" ]]; then admin=(--set-literal "grafana.adminUser=$(printf '%s' "$admin_user" | base64 --decode)"); fi
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --version 88.6.1 --namespace monitoring \
-  -f monitoring/values.yaml "${extra[@]}" \
+  -f monitoring/values.yaml "${extra[@]}" "${admin[@]}" \
   --atomic --wait --timeout 15m
 kubectl create configmap multicloud-dashboard -n monitoring \
   --from-file=multicloud.json=monitoring/dashboards/multicloud.json \

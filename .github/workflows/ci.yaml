@@ -100,6 +100,9 @@ jobs:
       - name: Verify service, metrics, and automatic rollback
         shell: pwsh
         run: ./scripts/local-verify.ps1 -ExpectedVersion $env:GITHUB_SHA -TestRollback
+      - name: Verify Grafana login, dashboard, and data source
+        shell: pwsh
+        run: ./scripts/local-grafana.ps1
       - name: Verify pod replacement, outage alert, and recovery
         shell: pwsh
         run: ./scripts/local-drill.ps1
@@ -117,6 +120,12 @@ jobs:
             '### Self-healing and alert recovery' >> $env:GITHUB_STEP_SUMMARY
             '```json' >> $env:GITHUB_STEP_SUMMARY
             Get-Content .validation/local-drill-result.json >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
+          if (Test-Path .validation/local-grafana-result.json) {
+            '### Authenticated Grafana validation' >> $env:GITHUB_STEP_SUMMARY
+            '```json' >> $env:GITHUB_STEP_SUMMARY
+            Get-Content .validation/local-grafana-result.json >> $env:GITHUB_STEP_SUMMARY
             '```' >> $env:GITHUB_STEP_SUMMARY
           }
       # Only the manually dispatched cloud release needs a cross-job image artifact.

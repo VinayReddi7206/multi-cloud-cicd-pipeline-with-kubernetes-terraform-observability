@@ -23,7 +23,13 @@ The script downloads kind 0.33.0 into the ignored `.tools` directory and verifie
 | Grafana | http://127.0.0.1:13000 |
 | Prometheus | http://127.0.0.1:19090 |
 
-Grafana's username is `admin`. `local-access.ps1` saves its generated password in `.validation/local-grafana-password.txt`; this is ignored by Git. Under **Dashboards**, find **Multi-Cloud Application**. These ports differ from the Docker Compose demo so either mode can be accessed without reusing its ports.
+Grafana's initial username is `admin`. `local-access.ps1` reads the managed username and saves it in `.validation/local-grafana-username.txt`, with the password in `.validation/local-grafana-password.txt`; both are ignored by Git. Under **Dashboards**, find **Multi-Cloud Application**. These ports differ from the Docker Compose demo so either mode can be accessed without reusing its ports.
+
+Check actual Grafana authentication and its Prometheus connection with `./scripts/local-grafana.ps1`. This also checks the six-panel dashboard, without requiring a port forward. CI runs the same check and records its report in the job summary.
+
+If the saved password is rejected, Grafana's persistent database may no longer match the Kubernetes Secret. For this local demo, `./scripts/local-grafana.ps1 -ResetAdminPassword` restores the database's admin password to the existing Secret and verifies login. It passes credentials through standard input, never command arguments or printed output. This is an explicit recovery operation; the normal check and CI never reset passwords automatically. Run `local-access.ps1` afterward to refresh the saved password file. Do not use the recovery switch if you intend to preserve a manually changed admin password.
+
+If the original admin account (ID 1) was renamed through Grafana, add `-AdminLogin YOUR_CURRENT_LOGIN` during recovery. The script verifies that login before synchronizing the username in the Kubernetes Secret. Monitoring setup preserves this managed username on subsequent Helm upgrades. Renaming the user in Grafana alone does not update Kubernetes configuration.
 
 ## Exercise the deployment
 

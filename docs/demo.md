@@ -8,6 +8,7 @@ Start Docker Desktop with Linux containers. If the local cluster is already runn
 
 ```powershell
 ./scripts/local-access.ps1
+./scripts/local-grafana.ps1
 ```
 
 For a fresh installation, run `./scripts/local-up.ps1` first. The [local guide](local-kubernetes.md) includes pause, resume and cleanup commands.
