@@ -10,6 +10,20 @@ This is a learning and portfolio project with production-oriented controls. Clou
 
 The live multi-cloud deliverable is still pending. See the [completion criteria](docs/completion.md) for the remaining acceptance checks. Cloud workflows are disabled until funding and cloud bootstrap are ready; GitHub environment setup and a configuration readiness report are automated in the [setup guide](docs/setup.md).
 
+## Demo links and project purpose
+
+**Public application URL: not deployed.** The application and Grafana run on the demo machine. The public links below show the source code and verified results; they do not host the running application. Live AKS/EKS deployment remains pending under the project's zero-cloud-spend constraint.
+
+| Link | What you can see |
+| --- | --- |
+| [Verified local demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/releases/tag/v0.1.0-local-demo) | Published release notes and a recorded health report; also linked from the repository's About section |
+| [Passing CI for the demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34439438911) | Tests, security scans, local Kubernetes deployment, monitoring checks, rollback and recovery evidence |
+| [Recruiter demo walkthrough](docs/demo.md) | Steps to demonstrate the system on a local machine |
+| [Local application](http://127.0.0.1:18080/api/info) | Node.js API; requires the local cluster and `./scripts/local-access.ps1` on your own machine |
+| [Local Grafana](http://127.0.0.1:13000) | Metrics dashboard; requires the same local setup and its Grafana credentials |
+
+This project demonstrates how a DevOps pipeline tests an application, checks infrastructure and image security, deploys a container, detects failures, and restores service. The sample API is deliberately small so the deployment and operating practices are the focus. The local workflow has been exercised end to end; the Azure and AWS infrastructure definitions have passed static checks but still require live cloud validation.
+
 ## Architecture
 
 ```mermaid
