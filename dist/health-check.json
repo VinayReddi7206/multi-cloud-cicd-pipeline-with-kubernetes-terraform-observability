@@ -1,0 +1,66 @@
+{
+  "checkedAt": "2026-09-10T05:06:55.4784043Z",
+  "scope": "Local kind Kubernetes only; does not verify Azure AKS or AWS EKS.",
+  "status": "passed",
+  "application": {
+    "readinessHttpStatus": 200,
+    "livenessHttpStatus": 200,
+    "cloud": "local",
+    "version": "local"
+  },
+  "kubernetes": {
+    "containerRestarts": 0.0,
+    "monitoringPods": 6,
+    "boundMonitoringVolumes": 3,
+    "applicationPods": 1,
+    "unreadyPods": 0
+  },
+  "monitoring": {
+    "expectedWatchdog": 1,
+    "unexpectedAlerts": [],
+    "healthyTargets": 15,
+    "activeTargets": 15
+  },
+  "grafana": {
+    "database": "ok",
+    "prometheusDataSource": "OK",
+    "dashboard": "Multi-Cloud Application",
+    "panels": [
+      {
+        "title": "Requests / second",
+        "finiteData": true,
+        "series": 1
+      },
+      {
+        "title": "Server error ratio",
+        "finiteData": true,
+        "series": 1
+      },
+      {
+        "title": "p95 request duration",
+        "finiteData": true,
+        "series": 1
+      },
+      {
+        "title": "Application resident memory",
+        "finiteData": true,
+        "series": 1
+      },
+      {
+        "title": "Pod CPU usage (cores)",
+        "finiteData": true,
+        "series": 1
+      },
+      {
+        "title": "Pod working memory",
+        "finiteData": true,
+        "series": 1
+      }
+    ],
+    "version": "13.2.0"
+  },
+  "verifiedCi": {
+    "url": "https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34439438911",
+    "commit": "35e13324ff2d8215242e7b95e6093aafa7005ba3"
+  }
+}

@@ -10,13 +10,16 @@ This is a learning and portfolio project with production-oriented controls. Clou
 
 The live multi-cloud deliverable is still pending. See the [completion criteria](docs/completion.md) for the remaining acceptance checks. Cloud workflows are disabled until funding and cloud bootstrap are ready; GitHub environment setup and a configuration readiness report are automated in the [setup guide](docs/setup.md).
 
-## Demo links and project purpose
+## Public showcase and demo links
 
-**Public application URL: not deployed.** The application and Grafana run on the demo machine. The public links below show the source code and verified results; they do not host the running application. Live AKS/EKS deployment remains pending under the project's zero-cloud-spend constraint.
+**[Open the public recruiter showcase](https://vinay-multicloud-cicd.chalky-bud-9961.chatgpt.site)** — explore the pipeline stages, recorded monitoring results, architecture, and verification evidence without installing anything.
+
+The showcase is a hosted static website. The Node.js API and Grafana still run on the demo machine; the showcase does not connect to those services or present recorded metrics as live telemetry. Live AKS/EKS deployment remains pending under the project's zero-cloud-spend constraint. See [showcase hosting](docs/showcase.md) for its scope and source.
 
 | Link | What you can see |
 | --- | --- |
-| [Verified local demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/releases/tag/v0.1.0-local-demo) | Published release notes and a recorded health report; also linked from the repository's About section |
+| [Public recruiter showcase](https://vinay-multicloud-cicd.chalky-bud-9961.chatgpt.site) | Hosted walkthrough, architecture, recorded health results and links to verifiable evidence; also linked from the repository's About section |
+| [Verified local demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/releases/tag/v0.1.0-local-demo) | Published release notes and a recorded health report |
 | [Passing CI for the demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34439438911) | Tests, security scans, local Kubernetes deployment, monitoring checks, rollback and recovery evidence |
 | [Recruiter demo walkthrough](docs/demo.md) | Steps to demonstrate the system on a local machine |
 | [Local application](http://127.0.0.1:18080/api/info) | Node.js API; requires the local cluster and `./scripts/local-access.ps1` on your own machine |
@@ -63,6 +66,7 @@ local/                       Pinned kind cluster for the local Kubernetes demo
 .github/workflows/           CI, cloud release, Terraform plan/apply
 scripts/                     Preflight, deployment, monitoring, backend initialization
 docs/                        Setup, security, operations, and validation
+dist/                        Static public recruiter showcase and recorded health report
 ```
 
 ## Run the API first
