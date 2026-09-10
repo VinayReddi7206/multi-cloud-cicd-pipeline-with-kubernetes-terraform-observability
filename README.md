@@ -12,13 +12,13 @@ The live multi-cloud deliverable is still pending. See the [completion criteria]
 
 ## Public showcase and demo links
 
-**[Open the public recruiter showcase](https://vinay-multicloud-cicd.chalky-bud-9961.chatgpt.site)** — explore the pipeline stages, recorded monitoring results, architecture, and verification evidence without installing anything.
+**[Open the public recruiter showcase](https://vinayreddi7206.github.io/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/)** — explore the pipeline stages, recorded monitoring results, architecture, and verification evidence without installing anything.
 
 The showcase is a hosted static website. The Node.js API and Grafana still run on the demo machine; the showcase does not connect to those services or present recorded metrics as live telemetry. Live AKS/EKS deployment remains pending under the project's zero-cloud-spend constraint. See [showcase hosting](docs/showcase.md) for its scope and source.
 
 | Link | What you can see |
 | --- | --- |
-| [Public recruiter showcase](https://vinay-multicloud-cicd.chalky-bud-9961.chatgpt.site) | Hosted walkthrough, architecture, recorded health results and links to verifiable evidence; also linked from the repository's About section |
+| [Public recruiter showcase](https://vinayreddi7206.github.io/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/) | Hosted walkthrough, architecture, recorded health results and links to verifiable evidence; also linked from the repository's About section |
 | [Verified local demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/releases/tag/v0.1.0-local-demo) | Published release notes and a recorded health report |
 | [Passing CI for the demo release](https://github.com/VinayReddi7206/multi-cloud-cicd-pipeline-with-kubernetes-terraform-observability/actions/runs/34439438911) | Tests, security scans, local Kubernetes deployment, monitoring checks, rollback and recovery evidence |
 | [Recruiter demo walkthrough](docs/demo.md) | Steps to demonstrate the system on a local machine |
